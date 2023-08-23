@@ -904,6 +904,8 @@ func TestV3WatchProgressOnMemberRestart(t *testing.T) {
 		wch := client.Watch(ctx, "foo", clientv3.WithProgressNotify())
 		watchReady <- struct{}{}
 		for wr := range wch {
+			t.Logf("%v: goroutine watch response: %v", time.Now(), wr)
+
 			if wr.Err() != nil {
 				errC <- fmt.Errorf("watch error: %w", wr.Err())
 				return
