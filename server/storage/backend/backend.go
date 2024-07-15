@@ -20,6 +20,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -574,6 +575,12 @@ func (b *backend) defrag() error {
 }
 
 func defragdb(odb, tmpdb *bolt.DB, limit int) error {
+	if defragWaitStr := os.Getenv("HACK_DEFRAG_WAIT_SECONDS"); defragWaitStr != "" {
+		if defragWaitSeconds, err := strconv.Atoi(defragWaitStr); err != nil && defragWaitSeconds > 0 {
+			time.Sleep(time.Duration(defragWaitSeconds) * time.Second)
+		}
+	}
+
 	// open a tx on tmpdb for writes
 	tmptx, err := tmpdb.Begin(true)
 	if err != nil {
