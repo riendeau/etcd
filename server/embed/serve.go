@@ -100,7 +100,7 @@ func (sctx *serveCtx) serve(
 	logger := defaultLog.New(ioutil.Discard, "etcdhttp", 0)
 	<-s.ReadyNotify()
 
-	sctx.lg.Info("ready to serve client requests")
+	sctx.lg.Info("ready to serve client requests (John's hacked version)")
 
 	m := cmux.New(sctx.l)
 	var server func() error

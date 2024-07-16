@@ -21,6 +21,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -516,7 +517,7 @@ func (b *backend) defrag() error {
 		)
 	}
 	// gofail: var defragBeforeCopy struct{}
-	err = defragdb(b.db, tmpdb, defragLimit)
+	err = defragdb(b.db, tmpdb, defragLimit, b.lg)
 	if err != nil {
 		tmpdb.Close()
 		if rmErr := os.RemoveAll(tmpdb.Path()); rmErr != nil {
@@ -573,7 +574,18 @@ func (b *backend) defrag() error {
 	return nil
 }
 
-func defragdb(odb, tmpdb *bolt.DB, limit int) error {
+func defragdb(odb, tmpdb *bolt.DB, limit int, lg *zap.Logger) error {
+	lg.Info("Using John's version!")
+	if defragWaitStr := os.Getenv("HACK_DEFRAG_WAIT_SECONDS"); defragWaitStr != "" {
+		lg.Info(fmt.Sprintf("HACK_DEFRAG_WAIT_SECONDS is %s", defragWaitStr))
+		if defragWaitSeconds, err := strconv.Atoi(defragWaitStr); err == nil && defragWaitSeconds > 0 {
+			lg.Info(fmt.Sprintf("About to sleep for %d seconds...", defragWaitSeconds))
+			time.Sleep(time.Duration(defragWaitSeconds) * time.Second)
+			lg.Info("Done sleeping!")
+		}
+	}
+	lg.Info("Now we are here.")
+
 	// open a tx on tmpdb for writes
 	tmptx, err := tmpdb.Begin(true)
 	if err != nil {
